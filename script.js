@@ -1,27 +1,57 @@
+function toggleMode() {
+
+    const mode =
+        document.getElementById("mode").value;
+
+    const keySection =
+        document.getElementById("keySection");
+
+    if (mode === "decrypt") {
+
+        keySection.style.display = "block";
+
+    } else {
+
+        keySection.style.display = "none";
+    }
+}
+
+async function processFile() {
+
+    const mode =
+        document.getElementById("mode").value;
+
+    if (mode === "encrypt") {
+
+        encryptFile();
+
+    } else {
+
+        decryptFile();
+    }
+}
+
 async function encryptFile() {
 
-    const fileInput =
-        document.getElementById("fileInput");
+    const file =
+        document.getElementById("fileInput")
+        .files[0];
 
     const status =
         document.getElementById("status");
 
-    const file = fileInput.files[0];
-
     if (!file) {
 
-        alert("Pilih file terlebih dahulu");
+        alert("Pilih file");
 
         return;
     }
 
     status.innerText = "Encrypting...";
 
-    // baca file
     const fileBuffer =
         await file.arrayBuffer();
 
-    // generate AES key
     const key =
         await crypto.subtle.generateKey(
         {
@@ -32,20 +62,17 @@ async function encryptFile() {
         ["encrypt", "decrypt"]
     );
 
-    // export key
     const exportedKey =
         await crypto.subtle.exportKey(
         "raw",
         key
     );
 
-    // random IV
     const iv =
         crypto.getRandomValues(
             new Uint8Array(12)
         );
 
-    // encrypt
     const encryptedData =
         await crypto.subtle.encrypt(
         {
@@ -56,7 +83,6 @@ async function encryptFile() {
         fileBuffer
     );
 
-    // gabungkan IV + encrypted
     const combined =
         new Uint8Array(
             iv.length +
@@ -102,4 +128,91 @@ async function encryptFile() {
 
     status.innerText =
         "File berhasil dienkripsi!";
+}
+
+async function decryptFile() {
+
+    const encFile =
+        document.getElementById("fileInput")
+        .files[0];
+
+    const keyFile =
+        document.getElementById("keyInput")
+        .files[0];
+
+    const status =
+        document.getElementById("status");
+
+    if (!encFile || !keyFile) {
+
+        alert("Pilih file .enc dan .key");
+
+        return;
+    }
+
+    status.innerText = "Decrypting...";
+
+    const rawKey =
+        await keyFile.arrayBuffer();
+
+    const key =
+        await crypto.subtle.importKey(
+        "raw",
+        rawKey,
+        {
+            name: "AES-GCM"
+        },
+        true,
+        ["decrypt"]
+    );
+
+    const encBuffer =
+        await encFile.arrayBuffer();
+
+    const data =
+        new Uint8Array(encBuffer);
+
+    const iv =
+        data.slice(0, 12);
+
+    const encryptedData =
+        data.slice(12);
+
+    try {
+
+        const decrypted =
+            await crypto.subtle.decrypt(
+            {
+                name: "AES-GCM",
+                iv: iv
+            },
+            key,
+            encryptedData
+        );
+
+        let originalName =
+            encFile.name.replace(".enc", "");
+
+        const blob =
+            new Blob([decrypted]);
+
+        const link =
+            document.createElement("a");
+
+        link.href =
+            URL.createObjectURL(blob);
+
+        link.download =
+            originalName;
+
+        link.click();
+
+        status.innerText =
+            "File berhasil didekripsi!";
+
+    } catch {
+
+        status.innerText =
+            "Key salah atau file rusak!";
+    }
 }
