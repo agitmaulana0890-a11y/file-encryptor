@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>File Encryptor</title>
 
@@ -16,18 +16,32 @@
     <h1>FILE ENCRYPTOR</h1>
 
     <p class="subtitle">
-        Encrypt foto atau file menjadi .enc dan .key
+        Encrypt & Decrypt File Securely
     </p>
 
-    <div class="upload-box">
+    <select id="mode" onchange="toggleMode()">
 
-        <input type="file" id="fileInput">
+        <option value="encrypt">
+            Encrypt
+        </option>
 
-        <button onclick="encryptFile()">
-            Encrypt File
-        </button>
+        <option value="decrypt">
+            Decrypt
+        </option>
+
+    </select>
+
+    <input type="file" id="fileInput">
+
+    <div id="keySection" style="display:none;">
+
+        <input type="file" id="keyInput">
 
     </div>
+
+    <button onclick="processFile()">
+        PROCESS
+    </button>
 
     <div id="status"></div>
 
